@@ -1,0 +1,1 @@
+pygame (LGPL-2.1)
