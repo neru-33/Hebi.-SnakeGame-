@@ -1,0 +1,27 @@
+# Python 파이썬 캐시 파일 
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 가상환경
+.venv/
+venv/
+env/
+
+# IDE / 편집기 설정
+.vscode/
+.idea/
+
+# 배포/빌드
+build/
+dist/
+*.egg-info/
+
+# 로그/임시파일
+*.log
+*.tmp
+*.swp
+
+# OS별 불필요 파일
+.DS_Store
+Thumbs.db
