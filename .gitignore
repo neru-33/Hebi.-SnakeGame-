@@ -25,3 +25,9 @@ dist/
 # OS별 불필요 파일
 .DS_Store
 Thumbs.db
+
+# 기타
+.env
+logic_spec.md
+render_spec.md
+mainprev.py

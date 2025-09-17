@@ -1,3 +1,4 @@
+from collections import deque
 from game_logic.apple import Apple
 from game_logic.snake import Snake
 
@@ -13,49 +14,50 @@ class GameState:
         self.reset()
 
     def reset(self):
-        start_pos = (self.rows // 2, self.cols // 2)
+        # 화면 중앙에서 뱀 생성
+        r, c = self.rows // 2, self.cols // 2
+        start_body = deque([(r, c), (r, c - 1), (r, c - 2)])
         initial_direction = (0, 1)  # 오른쪽으로 시작
-        self.snake = Snake(start_pos, initial_direction)
+
+        self.snake = Snake(start_body, initial_direction)
         self.apple = Apple((0, 0))  # 임시 위치
         self.score = 0
         self.game_over = False
         self.apple.respawn(self.rows, self.cols, set(self.snake.body))
 
-    def tick(self, next_dir: tuple):
+    def handle_input(self, next_dir: tuple):
+        """
+        입력을 받아 뱀의 다음 방향을 설정합니다.
+        """
+        if next_dir:
+            self.snake.set_direction(next_dir)
+
+    def update(self):
+        """
+        게임 상태를 한 틱 업데이트합니다. (예측 -> 충돌 검사 -> 실행)
+        """
         if self.game_over:
             return
 
-        # 입력 방향 반영
-        self.snake.set_direction(next_dir)
+        # 1. 다음 상태 예측
+        next_head_pos = self.snake.get_next_head_pos()
+        grow = next_head_pos == self.apple.position
 
-        # 뱀 이동
-        grow = False
-        # 사과 위치와 뱀의 다음 머리 위치가 같으면
-        new_head = (
-            self.snake.head()[0] + self.snake.direction[0],
-            self.snake.head()[1] + self.snake.direction[1],
-        )
-        if new_head == self.apple.position:
-            self.score += 1
-            grow = True
+        # 2. 충돌 검사
+        # 2-1. 벽 충돌
+        if not (0 <= next_head_pos[0] < self.rows and 0 <= next_head_pos[1] < self.cols):
+            self.game_over = True
+            return
+        # 2-2. 자기 몸 충돌
+        if self.snake.is_self_collision(next_head_pos, grow):
+            self.game_over = True
+            return
 
+        # 3. 상태 실행 (충돌이 없을 경우)
         self.snake.move(grow)
 
-        # 충돌 판정 (벽)
-        if not (
-            0 <= self.snake.head()[0] < self.rows
-            and 0 <= self.snake.head()[1] < self.cols
-        ):
-            self.game_over = True
-            return
-
-        # 충돌 판정 (자기 몸)
-        if self.snake.collides(self.snake.head()):
-            self.game_over = True
-            return
-
-        # 사과 처리
         if grow:
+            self.score += 1
             self.apple.respawn(self.rows, self.cols, set(self.snake.body))
 
         # 승리 조건

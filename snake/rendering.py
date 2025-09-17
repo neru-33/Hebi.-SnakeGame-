@@ -1,10 +1,14 @@
-
 import pygame
 from typing import Dict, Tuple, List, Literal
 
-from snake.config import (
-    BG_COLOR, APPLE_COLOR, SNAKE_HEAD_COLOR, SNAKE_BODY_COLOR,
-    TILE_SIZE, FONT_PATH, FONT_SIZE
+from config import (
+    BG_COLOR,
+    APPLE_COLOR,
+    SNAKE_HEAD_COLOR,
+    SNAKE_BODY_COLOR,
+    TILE_SIZE,
+    FONT_PATH,
+    FONT_SIZE,
 )
 
 # --- 렌더링 리소스를 위한 모듈 수준 변수 ---
@@ -19,9 +23,10 @@ def init_renderer(screen: pygame.Surface, grid_cols: int, grid_rows: int) -> Non
     """
     global _font, _offset_x, _offset_y
     try:
-        _font = pygame.font.Font(FONT_PATH, FONT_SIZE)
-    except IOError:
-        print(f"{FONT_PATH}에서 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
+        # 시스템 폰트(맑은 고딕)를 우선적으로 시도하고, 실패 시 기본 폰트를 사용합니다.
+        _font = pygame.font.SysFont("malgungothic", FONT_SIZE)
+    except pygame.error:
+        print(f"'맑은 고딕' 폰트를 찾을 수 없어 기본 폰트를 사용합니다. (한글이 깨질 수 있습니다)")
         _font = pygame.font.Font(None, FONT_SIZE)
 
     # 그리드를 화면 중앙에 맞추기 위한 오프셋 계산
@@ -66,7 +71,9 @@ def draw_frame(screen: pygame.Surface, render_data: Dict) -> None:
         screen.blit(score_surf, (10, 10))
 
 
-def draw_overlay(screen: pygame.Surface, state: Literal["pause", "game_over", "ready"], score: int) -> None:
+def draw_overlay(
+    screen: pygame.Surface, state: Literal["pause", "game_over", "ready"], score: int
+) -> None:
     """
     메시지와 함께 반투명 오버레이를 그립니다.
     """
@@ -91,18 +98,24 @@ def draw_overlay(screen: pygame.Surface, state: Literal["pause", "game_over", "r
 
     # 제목
     title_surf = _font.render(title_text, True, (255, 255, 255))
-    title_rect = title_surf.get_rect(center=(screen.get_width() / 2, screen.get_height() / 2 - 50))
+    title_rect = title_surf.get_rect(
+        center=(screen.get_width() / 2, screen.get_height() / 2 - 50)
+    )
     overlay_surface.blit(title_surf, title_rect)
 
     # 부제
     if subtitle_text:
         subtitle_surf = _font.render(subtitle_text, True, (255, 255, 255))
-        subtitle_rect = subtitle_surf.get_rect(center=(screen.get_width() / 2, screen.get_height() / 2))
+        subtitle_rect = subtitle_surf.get_rect(
+            center=(screen.get_width() / 2, screen.get_height() / 2)
+        )
         overlay_surface.blit(subtitle_surf, subtitle_rect)
 
     # 프롬프트
     prompt_surf = _font.render(prompt_text, True, (200, 200, 200))
-    prompt_rect = prompt_surf.get_rect(center=(screen.get_width() / 2, screen.get_height() / 2 + 50))
+    prompt_rect = prompt_surf.get_rect(
+        center=(screen.get_width() / 2, screen.get_height() / 2 + 50)
+    )
     overlay_surface.blit(prompt_surf, prompt_rect)
 
     screen.blit(overlay_surface, (0, 0))
@@ -116,16 +129,14 @@ def teardown_renderer() -> None:
     _font = None
 
 
-def _draw_tile(screen: pygame.Surface, pos: Tuple[int, int], color: Tuple[int, int, int]) -> None:
+def _draw_tile(
+    screen: pygame.Surface, pos: Tuple[int, int], color: Tuple[int, int, int]
+) -> None:
     """
     단일 그리드 타일을 그리는 헬퍼 함수입니다.
     """
     r, c = pos
     rect = pygame.Rect(
-        _offset_x + c * TILE_SIZE,
-        _offset_y + r * TILE_SIZE,
-        TILE_SIZE,
-        TILE_SIZE
+        _offset_x + c * TILE_SIZE, _offset_y + r * TILE_SIZE, TILE_SIZE, TILE_SIZE
     )
     pygame.draw.rect(screen, color, rect)
-
