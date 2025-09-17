@@ -1,4 +1,8 @@
-class game_state:
+from game_logic.apple import Apple
+from game_logic.snake import Snake
+
+
+class GameState:
     def __init__(self, rows: int, cols: int):
         self.rows = rows
         self.cols = cols
@@ -27,15 +31,21 @@ class game_state:
         # 뱀 이동
         grow = False
         # 사과 위치와 뱀의 다음 머리 위치가 같으면
-        new_head = (self.snake.head()[0] + self.snake.direction[0], self.snake.head()[1] + self.snake.direction[1])
+        new_head = (
+            self.snake.head()[0] + self.snake.direction[0],
+            self.snake.head()[1] + self.snake.direction[1],
+        )
         if new_head == self.apple.position:
             self.score += 1
             grow = True
-            
+
         self.snake.move(grow)
 
         # 충돌 판정 (벽)
-        if not (0 <= self.snake.head()[0] < self.rows and 0 <= self.snake.head()[1] < self.cols):
+        if not (
+            0 <= self.snake.head()[0] < self.rows
+            and 0 <= self.snake.head()[1] < self.cols
+        ):
             self.game_over = True
             return
 
@@ -43,7 +53,7 @@ class game_state:
         if self.snake.collides(self.snake.head()):
             self.game_over = True
             return
-            
+
         # 사과 처리
         if grow:
             self.apple.respawn(self.rows, self.cols, set(self.snake.body))
@@ -61,5 +71,5 @@ class game_state:
             "snake_body": list(self.snake.body),
             "apple_pos": self.apple.position,
             "score": self.score,
-            "game_over": self.game_over
+            "game_over": self.game_over,
         }

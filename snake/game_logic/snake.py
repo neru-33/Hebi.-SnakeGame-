@@ -1,6 +1,7 @@
 from collections import deque
 
-class snake:
+
+class Snake:
     def __init__(self, start_pos: tuple, direction: tuple):
         self.body = deque([start_pos])
         self.direction = direction
@@ -14,7 +15,10 @@ class snake:
             self.direction = new_dir
 
     def move(self, grow: bool):
-        new_head = (self.head()[0] + self.direction[0], self.head()[1] + self.direction[1])
+        new_head = (
+            self.head()[0] + self.direction[0],
+            self.head()[1] + self.direction[1],
+        )
         self.body.appendleft(new_head)
         if not grow:
             self.body.pop()

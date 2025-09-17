@@ -1,6 +1,7 @@
 import random
 
-class apple:
+
+class Apple:
     def __init__(self, position: tuple):
         self.position = position
 
