@@ -26,7 +26,9 @@ def init_renderer(screen: pygame.Surface, grid_cols: int, grid_rows: int) -> Non
         # 시스템 폰트(맑은 고딕)를 우선적으로 시도하고, 실패 시 기본 폰트를 사용합니다.
         _font = pygame.font.SysFont("malgungothic", FONT_SIZE)
     except pygame.error:
-        print(f"'맑은 고딕' 폰트를 찾을 수 없어 기본 폰트를 사용합니다. (한글이 깨질 수 있습니다)")
+        print(
+            f"'맑은 고딕' 폰트를 찾을 수 없어 기본 폰트를 사용합니다. (한글이 깨질 수 있습니다)"
+        )
         _font = pygame.font.Font(None, FONT_SIZE)
 
     # 그리드를 화면 중앙에 맞추기 위한 오프셋 계산
@@ -72,7 +74,9 @@ def draw_frame(screen: pygame.Surface, render_data: Dict) -> None:
 
 
 def draw_overlay(
-    screen: pygame.Surface, state: Literal["pause", "game_over", "ready"], score: int
+    screen: pygame.Surface,
+    state: Literal["pause", "game_over", "ready", "game_win"],
+    score: int,
 ) -> None:
     """
     메시지와 함께 반투명 오버레이를 그립니다.
@@ -86,6 +90,10 @@ def draw_overlay(
     if state == "game_over":
         title_text = "게임 오버"
         subtitle_text = f"최종 점수: {score}"
+        prompt_text = "다시 시작하려면 Enter를 누르세요"
+    if state == "game_win":
+        title_text = "1121212"
+        subtitle_text = f"111 점수: {score}"
         prompt_text = "다시 시작하려면 Enter를 누르세요"
     elif state == "pause":
         title_text = "일시정지"

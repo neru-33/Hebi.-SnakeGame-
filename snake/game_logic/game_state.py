@@ -1,6 +1,8 @@
 from collections import deque
 from game_logic.apple import Apple
 from game_logic.snake import Snake
+import config
+import random
 
 
 class GameState:
@@ -11,18 +13,25 @@ class GameState:
         self.apple = None
         self.score = 0
         self.game_over = False
+        self.game_win = False
         self.reset()
 
     def reset(self):
+        if config.SEED != None:
+            random.seed(config.SEED)
+
         # 화면 중앙에서 뱀 생성
         r, c = self.rows // 2, self.cols // 2
         start_body = deque([(r, c), (r, c - 1), (r, c - 2)])
         initial_direction = (0, 1)  # 오른쪽으로 시작
 
         self.snake = Snake(start_body, initial_direction)
-        self.apple = Apple((0, 0))  # 임시 위치
+        self.apple = Apple(
+            (0, 0), self.rows * self.cols - len(self.snake.body)
+        )  # 임시 위치
         self.score = 0
         self.game_over = False
+        self.game_win = False
         self.apple.respawn(self.rows, self.cols, set(self.snake.body))
 
     def handle_input(self, next_dir: tuple):
@@ -36,7 +45,7 @@ class GameState:
         """
         게임 상태를 한 틱 업데이트합니다. (예측 -> 충돌 검사 -> 실행)
         """
-        if self.game_over:
+        if self.game_over or self.game_win:
             return
 
         # 1. 다음 상태 예측
@@ -45,7 +54,10 @@ class GameState:
 
         # 2. 충돌 검사
         # 2-1. 벽 충돌
-        if not (0 <= next_head_pos[0] < self.rows and 0 <= next_head_pos[1] < self.cols):
+
+        if not (
+            0 <= next_head_pos[0] < self.rows and 0 <= next_head_pos[1] < self.cols
+        ):
             self.game_over = True
             return
         # 2-2. 자기 몸 충돌
@@ -62,8 +74,11 @@ class GameState:
 
         # 승리 조건
         if len(self.snake.body) == self.rows * self.cols:
-            self.game_over = True
-            print("You Win!")
+            self.game_win = True
+            return
+
+    def is_win(self) -> bool:
+        return self.game_win
 
     def is_over(self) -> bool:
         return self.game_over
@@ -74,4 +89,5 @@ class GameState:
             "apple_pos": self.apple.position,
             "score": self.score,
             "game_over": self.game_over,
+            "game_win": self.game_win,
         }

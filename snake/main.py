@@ -14,7 +14,7 @@ def main():
 
     # 화면 설정
     screen = pygame.display.set_mode((config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
-    pygame.display.set_caption("Hebi - Snake Game")
+    pygame.display.set_caption("Hebi")
     clock = pygame.time.Clock()
 
     # 게임 상태 및 렌더러 초기화
@@ -47,6 +47,9 @@ def main():
                 elif game_state.is_over():
                     if event.key == pygame.K_RETURN:
                         game_state.reset()
+                elif game_state.is_win():
+                    if event.key == pygame.K_RETURN:
+                        game_state.reset()
                 elif event.key in dir_map:
                     game_state.handle_input(dir_map[event.key])
 
@@ -57,7 +60,7 @@ def main():
         accumulator += frame_time
 
         while accumulator >= tick_dt:
-            if not game_state.is_over():
+            if not game_state.is_over() and not game_state.is_win():
                 game_state.update()
             accumulator -= tick_dt
 
@@ -71,6 +74,9 @@ def main():
                 "score": render_data["score"],
             },
         )
+
+        if game_state.is_win():
+            draw_overlay(screen, "game_win", game_state.score)
 
         if game_state.is_over():
             draw_overlay(screen, "game_over", game_state.score)
