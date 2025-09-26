@@ -1,5 +1,4 @@
 from collections import deque
-from game_logic.apple import Apple
 from game_logic.snake import Snake
 import config
 import random
@@ -10,14 +9,14 @@ class GameState:
         self.rows = rows
         self.cols = cols
         self.snake = None
-        self.apple = None
+        self.apples = []
         self.score = 0
         self.game_over = False
         self.game_win = False
         self.reset()
 
     def reset(self):
-        if config.SEED != None:
+        if config.SEED is not None:
             random.seed(config.SEED)
 
         # 화면 중앙에서 뱀 생성
@@ -26,13 +25,34 @@ class GameState:
         initial_direction = (0, 1)  # 오른쪽으로 시작
 
         self.snake = Snake(start_body, initial_direction)
-        self.apple = Apple(
-            (0, 0), self.rows * self.cols - len(self.snake.body)
-        )  # 임시 위치
+        self.apples = []
         self.score = 0
         self.game_over = False
         self.game_win = False
-        self.apple.respawn(self.rows, self.cols, set(self.snake.body))
+
+        # 설정된 개수만큼 사과 생성
+        for _ in range(config.MAX_APPLES):
+            self._spawn_apple()
+
+    def _spawn_apple(self):
+        """
+        맵의 빈 공간에 새로운 사과를 하나 생성합니다.
+        만약 빈 공간이 없다면 아무것도 하지 않습니다.
+        """
+        # 1. 안전 장치: 빈 공간이 있는지 확인
+        total_cells = self.rows * self.cols
+        occupied_cells = len(self.snake.body) + len(self.apples)
+
+        if occupied_cells >= total_cells:
+            return  # 빈 공간이 없으므로 함수 종료
+
+        # 2. 사과 생성
+        occupied_positions = set(self.snake.body) | set(self.apples)
+        while True:
+            new_pos = (random.randint(0, self.rows - 1), random.randint(0, self.cols - 1))
+            if new_pos not in occupied_positions:
+                self.apples.append(new_pos)
+                break
 
     def handle_input(self, next_dir: tuple):
         """
@@ -50,11 +70,10 @@ class GameState:
 
         # 1. 다음 상태 예측
         next_head_pos = self.snake.get_next_head_pos()
-        grow = next_head_pos == self.apple.position
+        grow = next_head_pos in self.apples
 
         # 2. 충돌 검사
         # 2-1. 벽 충돌
-
         if not (
             0 <= next_head_pos[0] < self.rows and 0 <= next_head_pos[1] < self.cols
         ):
@@ -70,7 +89,8 @@ class GameState:
 
         if grow:
             self.score += 1
-            self.apple.respawn(self.rows, self.cols, set(self.snake.body))
+            self.apples.remove(next_head_pos)  # 먹은 사과 제거
+            self._spawn_apple()  # 새 사과 추가
 
         # 승리 조건
         if len(self.snake.body) == self.rows * self.cols:
@@ -86,7 +106,7 @@ class GameState:
     def get_render_data(self) -> dict:
         return {
             "snake_body": list(self.snake.body),
-            "apple_pos": self.apple.position,
+            "apples": self.apples,
             "score": self.score,
             "game_over": self.game_over,
             "game_win": self.game_win,

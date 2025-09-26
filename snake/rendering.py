@@ -53,9 +53,10 @@ def draw_frame(screen: pygame.Surface, render_data: Dict) -> None:
         return
 
     # 사과 그리기
-    apple_pos = render_data.get("apple")
-    if apple_pos:
-        _draw_tile(screen, apple_pos, APPLE_COLOR)
+    apple_positions = render_data.get("apples", [])
+    for apple_pos in apple_positions:
+        if apple_pos:
+            _draw_tile(screen, apple_pos, APPLE_COLOR)
 
     # 뱀 그리기
     snake_parts = render_data.get("snake", [])
@@ -91,16 +92,16 @@ def draw_overlay(
         title_text = "게임 오버"
         subtitle_text = f"최종 점수: {score}"
         prompt_text = "다시 시작하려면 Enter를 누르세요"
-    if state == "game_win":
-        title_text = "1121212"
-        subtitle_text = f"111 점수: {score}"
+    elif state == "game_win":
+        title_text = "게임 승리"
+        subtitle_text = f"최종 점수: {score}"
         prompt_text = "다시 시작하려면 Enter를 누르세요"
     elif state == "pause":
         title_text = "일시정지"
         prompt_text = "계속하려면 P를 누르세요"
         subtitle_text = ""
     else:  # ready
-        title_text = "Hebi"
+        title_text = "게임 오버"
         subtitle_text = "화살표 키로 이동"
         prompt_text = "시작하려면 Enter를 누르세요"
 

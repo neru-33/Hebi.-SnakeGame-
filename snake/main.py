@@ -70,16 +70,18 @@ def main():
             screen,
             {
                 "snake": render_data["snake_body"],
-                "apple": render_data["apple_pos"],
+                "apples": render_data["apples"],
                 "score": render_data["score"],
             },
         )
 
+        if game_state.is_over():
+            draw_overlay(screen, "game_over", game_state.score)
+
         if game_state.is_win():
             draw_overlay(screen, "game_win", game_state.score)
 
-        if game_state.is_over():
-            draw_overlay(screen, "game_over", game_state.score)
+        
 
         pygame.display.flip()
 
