@@ -160,10 +160,11 @@ def main():
                     accumulator -= tick_dt
 
             # 2-2. 렌더링 (게임 플레이, 일시정지 모두)
+            # 1단계: 게임 월드(뱀, 사과 등)를 별도의 game_surface에 그립니다.
             render_data = game_state.get_render_data()
             draw_frame(game_surface, render_data)
 
-            # 게임 오버, 승리, 일시정지 등 추가적인 UI(오버레이)를 그립니다.
+            # 게임 오버/승리 오버레이는 게임 화면 크기에 맞게 game_surface에 그립니다.
             if game_state.is_over():
                 draw_overlay(game_surface, "game_over", game_state.score)
                 for event in events:
@@ -174,13 +175,16 @@ def main():
                 for event in events:
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                         back_to_main_menu()
-            elif game_mode == "paused":
-                draw_pause_overlay(game_surface, resume_game, open_settings, back_to_main_menu, events)
             
-            # 최종적으로 게임 화면(game_surface)을 메인 화면(screen)의 중앙에 그립니다.
+            # 2단계: 완성된 game_surface를 메인 screen의 중앙에 그립니다.
             pos_x = (screen.get_width() - game_surface.get_width()) // 2
             pos_y = (screen.get_height() - game_surface.get_height()) // 2
             screen.blit(game_surface, (pos_x, pos_y))
+
+            # 3단계: 일시정지 메뉴는 모든 것이 그려진 후, 메인 screen 위에 직접 그립니다.
+            # 이렇게 해야 마우스 좌표계가 올바르게 일치합니다.
+            if game_mode == "paused":
+                draw_pause_overlay(screen, resume_game, open_settings, back_to_main_menu, events)
 
         # --- 3. 화면 업데이트 ---
         # 현재 프레임에 그려진 모든 것을 실제 화면에 표시합니다.
