@@ -86,9 +86,15 @@ def _init_ui_elements(
     for key, (label, options) in setting_items.items():
         def create_callback(setting_key, option_list):
             def on_click():
-                current_idx = option_list.index(config.current_settings[setting_key])
+                # 현재 설정 값과 다른 값으로 변경될 때만 플래그를 설정합니다.
+                current_value = config.current_settings[setting_key]
+                current_idx = option_list.index(current_value)
                 next_idx = (current_idx + 1) % len(option_list)
-                config.current_settings[setting_key] = option_list[next_idx]
+                new_value = option_list[next_idx]
+                
+                if current_value != new_value:
+                    config.current_settings[setting_key] = new_value
+                    config.settings_have_changed = True
             return on_click
         option_keys = list(options.keys())
         btn = Button(pygame.Rect(center_x - 125, setting_y, 250, 40), f"{label}: {config.current_settings[key]}", _font, create_callback(key, option_keys))
@@ -191,6 +197,21 @@ def draw_pause_overlay(screen: pygame.Surface, resume_game_cb: Callable, open_se
         for event in events:
             button.handle_event(event)
         button.draw(overlay_surface)
+
+    screen.blit(overlay_surface, (0, 0))
+
+
+def draw_restart_prompt_overlay(screen: pygame.Surface) -> None:
+    """설정 변경 후 재시작이 필요하다는 안내 오버레이를 그립니다."""
+    overlay_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+    overlay_surface.fill((0, 0, 0, 170)) # 좀 더 진한 배경
+    if not _font: return
+
+    prompt_text = "설정이 변경되었습니다. Enter를 눌러 재시작하세요."
+    
+    prompt_surf = _font.render(prompt_text, True, (255, 255, 255))
+    prompt_rect = prompt_surf.get_rect(center=(screen.get_width() / 2, screen.get_height() / 2))
+    overlay_surface.blit(prompt_surf, prompt_rect)
 
     screen.blit(overlay_surface, (0, 0))
 

@@ -67,6 +67,9 @@ current_settings = {
     "apple_count": "보통",
 }
 
+# 게임 플레이 도중 설정이 변경되었는지 추적하는 플래그
+settings_have_changed = False
+
 
 def get_current_config() -> dict:
     """

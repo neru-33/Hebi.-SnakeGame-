@@ -10,6 +10,7 @@ from rendering import (
     draw_main_menu,
     draw_settings_screen,
     draw_pause_overlay,
+    draw_restart_prompt_overlay,
 )
 
 
@@ -76,7 +77,10 @@ def main():
     def back_from_settings():
         nonlocal game_mode, previous_game_mode
         # 설정 메뉴에 진입하기 전의 상태로 돌아갑니다.
-        if previous_game_mode:
+        # 만약 게임 플레이 중에 설정을 변경했다면, 재시작 안내 상태로 전환합니다.
+        if previous_game_mode == "paused" and config.settings_have_changed:
+            game_mode = "paused_restart_required"
+        elif previous_game_mode:
             game_mode = previous_game_mode
         else:
             game_mode = "main_menu"  # 비상시 메인 메뉴로 이동
@@ -103,6 +107,9 @@ def main():
         # 시간 변수들을 리셋하여 로직 업데이트가 처음부터 시작되도록 합니다.
         last_time = time.perf_counter()
         accumulator = 0.0
+        
+        # 설정 변경 플래그를 리셋합니다.
+        config.settings_have_changed = False
 
     # --- 메인 게임 루프 ---
     running = True
@@ -135,7 +142,7 @@ def main():
         elif game_mode == "settings":
             draw_settings_screen(screen, back_from_settings, events)
 
-        elif game_mode == "gameplay" or game_mode == "paused":
+        elif game_mode == "gameplay" or game_mode == "paused" or game_mode == "paused_restart_required":
             # 게임 플레이/일시정지 상태일 때의 로직
             if not game_state:
                 reset_game()  # 첫 프레임일 경우 게임 초기화
@@ -186,10 +193,15 @@ def main():
             pos_y = (screen.get_height() - game_surface.get_height()) // 2
             screen.blit(game_surface, (pos_x, pos_y))
 
-            # 3단계: 일시정지 메뉴는 모든 것이 그려진 후, 메인 screen 위에 직접 그립니다.
-            # 이렇게 해야 마우스 좌표계가 올바르게 일치합니다.
+            # 3단계: 추가적인 오버레이를 screen 위에 직접 그립니다.
             if game_mode == "paused":
                 draw_pause_overlay(screen, resume_game, open_settings, back_to_main_menu, events)
+            elif game_mode == "paused_restart_required":
+                draw_restart_prompt_overlay(screen)
+                for event in events:
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                        reset_game()
+                        game_mode = "gameplay"
 
         # --- 3. 화면 업데이트 ---
         # 현재 프레임에 그려진 모든 것을 실제 화면에 표시합니다.
