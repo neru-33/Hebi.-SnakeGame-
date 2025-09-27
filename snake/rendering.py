@@ -152,9 +152,14 @@ def draw_overlay(screen: pygame.Surface, state: Literal["game_over", "game_win"]
     overlay_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
     overlay_surface.fill((0, 0, 0, 128))
     if not _font: return
-    title_text = "게임 오버" if state == "game_over" else "게임 승리"
+    if state == "game_over":
+        title_text = "게임 오버"
+        prompt_text = "재시작: Enter / 메뉴로: ESC"
+    else: # game_win
+        title_text = "게임 승리"
+        prompt_text = "메인 메뉴로 돌아가려면 Enter를 누르세요"
+
     subtitle_text = f"최종 점수: {score}"
-    prompt_text = "메인 메뉴로 돌아가려면 Enter를 누르세요"
     texts = [
         (_title_font.render(title_text, True, (255, 255, 255)), -50),
         (_font.render(subtitle_text, True, (255, 255, 255)), 10),
