@@ -142,6 +142,18 @@ def draw_frame(screen: pygame.Surface, render_data: Dict) -> None:
     """한 프레임의 게임 화면(뱀, 사과, 점수)을 그립니다."""
     screen.fill(config.BG_COLOR)
     if not _font: return
+
+    # --- 맵 경계선 그리기 ---
+    game_config = config.get_current_config()
+    border_rect = pygame.Rect(
+        _offset_x, 
+        _offset_y, 
+        game_config["GRID_COLS"] * config.TILE_SIZE, 
+        game_config["GRID_ROWS"] * config.TILE_SIZE
+    )
+    pygame.draw.rect(screen, config.GRID_COLOR, border_rect, 1)
+
+    # --- 게임 요소 그리기 ---
     for apple_pos in render_data.get("apples", []):
         _draw_tile(screen, apple_pos, config.APPLE_COLOR)
     snake_parts = render_data.get("snake_body", [])
@@ -149,8 +161,21 @@ def draw_frame(screen: pygame.Surface, render_data: Dict) -> None:
         _draw_tile(screen, snake_parts[0], config.SNAKE_HEAD_COLOR)
         for part in snake_parts[1:]:
             _draw_tile(screen, part, config.SNAKE_BODY_COLOR)
+    
     score_surf = _font.render(f"점수: {render_data.get('score', 0)}", True, (255, 255, 255))
     screen.blit(score_surf, (10, 10))
+
+def _draw_tile(screen: pygame.Surface, pos: Tuple[int, int], color: Tuple[int, int, int]) -> None:
+    """그리드 좌표에 맞는 사각형 타일 하나를 그리는 헬퍼 함수입니다."""
+    r, c = pos
+    rect = pygame.Rect(
+        _offset_x + c * config.TILE_SIZE, 
+        _offset_y + r * config.TILE_SIZE, 
+        config.TILE_SIZE, 
+        config.TILE_SIZE
+    )
+    pygame.draw.rect(screen, color, rect)
+
 
 
 def draw_overlay(screen: pygame.Surface, state: Literal["game_over", "game_win"], score: int) -> None:
@@ -216,8 +241,4 @@ def draw_restart_prompt_overlay(screen: pygame.Surface) -> None:
     screen.blit(overlay_surface, (0, 0))
 
 
-def _draw_tile(screen: pygame.Surface, pos: Tuple[int, int], color: Tuple[int, int, int]) -> None:
-    """그리드 좌표에 맞는 사각형 타일 하나를 그리는 헬퍼 함수입니다."""
-    r, c = pos
-    rect = pygame.Rect(_offset_x + c * config.TILE_SIZE, _offset_y + r * config.TILE_SIZE, config.TILE_SIZE, config.TILE_SIZE)
-    pygame.draw.rect(screen, color, rect)
+
