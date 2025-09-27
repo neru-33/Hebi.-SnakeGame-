@@ -68,8 +68,10 @@ def main():
         game_mode = "main_menu"
 
     def resume_game():
-        nonlocal game_mode
+        nonlocal game_mode, last_time
         game_mode = "gameplay"
+        # 일시정지 동안의 시간을 "따라잡지" 않도록 타이머를 리셋합니다.
+        last_time = time.perf_counter()
 
     def back_from_settings():
         nonlocal game_mode, previous_game_mode
@@ -116,7 +118,7 @@ def main():
                 if game_mode == "gameplay":
                     game_mode = "paused"
                 elif game_mode == "paused":
-                    game_mode = "gameplay"
+                    resume_game()
                 elif game_mode == "settings":
                     back_from_settings()
                 else: # main_menu
@@ -168,8 +170,11 @@ def main():
             if game_state.is_over():
                 draw_overlay(game_surface, "game_over", game_state.score)
                 for event in events:
-                    if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                        back_to_main_menu()
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_RETURN:
+                            reset_game()  # 재시작
+                        elif event.key == pygame.K_ESCAPE:
+                            back_to_main_menu() # 메인 메뉴로
             elif game_state.is_win():
                 draw_overlay(game_surface, "game_win", game_state.score)
                 for event in events:
