@@ -3,6 +3,7 @@ from typing import Dict, Tuple, List, Literal, Callable
 import config
 from ui import Button
 import os
+import sys
 
 # --- 모듈 수준 변수 ---
 # 렌더링에 필요한 폰트, 오프셋, UI 요소들을 전역적으로 관리합니다.
@@ -22,10 +23,13 @@ def _load_textures():
     if _textures:
         return
     
-    # 이미지 파일 경로를 생성합니다.
-    # os.path.join을 사용하여 OS에 맞는 경로 구분자를 사용합니다.
-    # '..'을 사용하여 'snake' 디렉토리에서 상위 디렉토리로 이동 후 'res'로 들어갑니다.
-    base_path = os.path.join(os.path.dirname(__file__), '..', 'res')
+    # PyInstaller로 빌드된 .exe에서 리소스 경로를 올바르게 찾기 위한 경로 설정
+    if hasattr(sys, '_MEIPASS'):
+        # PyInstaller는 임시 폴더에 데이터를 압축 해제하고 그 경로를 _MEIPASS에 저장합니다.
+        base_path = os.path.join(sys._MEIPASS, 'res')
+    else:
+        # 일반적인 .py 실행 환경
+        base_path = os.path.join(os.path.dirname(__file__), '..', 'res')
     
     try:
         # 텍스처들을 딕셔너리에 로드합니다.
@@ -232,7 +236,7 @@ def draw_frame(screen: pygame.Surface, render_data: Dict) -> None:
                 for part in snake_parts[1:]:
                     _draw_tile(screen, part, _textures['body'])
     
-    score_surf = _font.render(f"점수: {render_data.get('score', 0)}", True, (255, 255, 255))
+    score_surf = _font.render(f"점수: {render_data.get('score', 0)}", True, (50, 50, 50))
     screen.blit(score_surf, (10, 10))
 
 def _draw_tile(screen: pygame.Surface, pos: Tuple[int, int], texture: pygame.Surface) -> None:
