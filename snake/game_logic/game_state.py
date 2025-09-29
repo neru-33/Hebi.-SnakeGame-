@@ -123,6 +123,7 @@ class GameState:
         """
         return {
             "snake_body": list(self.snake.body),
+            "snake_direction": self.snake.direction,
             "apples": self.apples,
             "score": self.score,
             "game_over": self.game_over,

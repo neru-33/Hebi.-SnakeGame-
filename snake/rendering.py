@@ -2,6 +2,7 @@ import pygame
 from typing import Dict, Tuple, List, Literal, Callable
 import config
 from ui import Button
+import os
 
 # --- 모듈 수준 변수 ---
 # 렌더링에 필요한 폰트, 오프셋, UI 요소들을 전역적으로 관리합니다.
@@ -9,6 +10,46 @@ _font = None
 _title_font = None
 _offset_x = 0
 _offset_y = 0
+
+# --- 이미지 텍스처 로드 ---
+_textures = {}
+
+def _load_textures():
+    """
+    게임에 사용될 이미지 텍스처들을 로드하고 크기를 조절합니다.
+    """
+    global _textures
+    if _textures:
+        return
+    
+    # 이미지 파일 경로를 생성합니다.
+    # os.path.join을 사용하여 OS에 맞는 경로 구분자를 사용합니다.
+    # '..'을 사용하여 'snake' 디렉토리에서 상위 디렉토리로 이동 후 'res'로 들어갑니다.
+    base_path = os.path.join(os.path.dirname(__file__), '..', 'res')
+    
+    try:
+        # 텍스처들을 딕셔너리에 로드합니다.
+        _textures = {
+            'tile': pygame.image.load(os.path.join(base_path, 'tile.png')).convert(),
+            'apple': pygame.image.load(os.path.join(base_path, 'apple.png')).convert_alpha(),
+            'body': pygame.image.load(os.path.join(base_path, 'body.png')).convert_alpha(),
+            # 방향 벡터: (row, col)
+            (0, 1): pygame.image.load(os.path.join(base_path, 'head_right.png')).convert_alpha(),      # 오른쪽
+            (0, -1): pygame.image.load(os.path.join(base_path, 'head_left.png')).convert_alpha(), # 왼쪽
+            (-1, 0): pygame.image.load(os.path.join(base_path, 'head_up.png')).convert_alpha(), # 위
+            (1, 0): pygame.image.load(os.path.join(base_path, 'head_down.png')).convert_alpha(),  # 아래
+        }
+
+        # 로드된 모든 이미지의 크기를 TILE_SIZE에 맞게 조절합니다.
+        tile_dim = (config.TILE_SIZE, config.TILE_SIZE)
+        for key, img in _textures.items():
+            _textures[key] = pygame.transform.scale(img, tile_dim)
+
+    except pygame.error as e:
+        print(f"텍스처 파일 로딩 중 오류 발생: {e}")
+        # 오류 발생 시 _textures를 비워 텍스처 렌더링을 시도하지 않도록 합니다.
+        _textures = {}
+
 
 # UI 요소들은 한 번만 생성하고 재사용하여 성능을 최적화합니다.
 _main_menu_buttons = []
@@ -39,6 +80,7 @@ def init_renderer(screen: pygame.Surface, grid_cols: int, grid_rows: int) -> Non
     """
     global _offset_x, _offset_y
     _initialize_fonts()
+    _load_textures() # 텍스처 로딩 함수 호출
 
     grid_width = grid_cols * config.TILE_SIZE
     grid_height = grid_rows * config.TILE_SIZE
@@ -143,8 +185,15 @@ def draw_frame(screen: pygame.Surface, render_data: Dict) -> None:
     screen.fill(config.BG_COLOR)
     if not _font: return
 
-    # --- 맵 경계선 그리기 ---
     game_config = config.get_current_config()
+
+    # --- 타일 배경 그리기 ---
+    if _textures.get('tile'):
+        for r in range(game_config["GRID_ROWS"]):
+            for c in range(game_config["GRID_COLS"]):
+                _draw_tile(screen, (r, c), _textures['tile'])
+
+    # --- 맵 경계선 그리기 ---
     border_rect = pygame.Rect(
         _offset_x, 
         _offset_y, 
@@ -154,19 +203,51 @@ def draw_frame(screen: pygame.Surface, render_data: Dict) -> None:
     pygame.draw.rect(screen, config.GRID_COLOR, border_rect, 1)
 
     # --- 게임 요소 그리기 ---
-    for apple_pos in render_data.get("apples", []):
-        _draw_tile(screen, apple_pos, config.APPLE_COLOR)
-    snake_parts = render_data.get("snake_body", [])
-    if snake_parts:
-        _draw_tile(screen, snake_parts[0], config.SNAKE_HEAD_COLOR)
-        for part in snake_parts[1:]:
-            _draw_tile(screen, part, config.SNAKE_BODY_COLOR)
+    # 텍스처가 성공적으로 로드되었는지 확인합니다.
+    if not _textures:
+        # 텍스처 로딩 실패 시 기존의 사각형 방식으로 그립니다 (Fallback)
+        for apple_pos in render_data.get("apples", []):
+            _draw_tile_fallback(screen, apple_pos, config.APPLE_COLOR)
+        snake_parts = render_data.get("snake_body", [])
+        if snake_parts:
+            _draw_tile_fallback(screen, snake_parts[0], config.SNAKE_HEAD_COLOR)
+            for part in snake_parts[1:]:
+                _draw_tile_fallback(screen, part, config.SNAKE_BODY_COLOR)
+    else:
+        # 텍스처를 사용하여 그립니다.
+        for apple_pos in render_data.get("apples", []):
+            _draw_tile(screen, apple_pos, _textures['apple'])
+        
+        snake_parts = render_data.get("snake_body", [])
+        snake_direction = render_data.get("snake_direction")
+
+        if snake_parts:
+            # 머리 그리기: 방향에 맞는 텍스처를 선택합니다.
+            head_texture = _textures.get(snake_direction, _textures.get((0, 1))) # 방향 키가 없으면 오른쪽(기본)
+            if head_texture:
+                _draw_tile(screen, snake_parts[0], head_texture)
+            
+            # 몸통 그리기
+            if _textures.get('body'):
+                for part in snake_parts[1:]:
+                    _draw_tile(screen, part, _textures['body'])
     
     score_surf = _font.render(f"점수: {render_data.get('score', 0)}", True, (255, 255, 255))
     screen.blit(score_surf, (10, 10))
 
-def _draw_tile(screen: pygame.Surface, pos: Tuple[int, int], color: Tuple[int, int, int]) -> None:
-    """그리드 좌표에 맞는 사각형 타일 하나를 그리는 헬퍼 함수입니다."""
+def _draw_tile(screen: pygame.Surface, pos: Tuple[int, int], texture: pygame.Surface) -> None:
+    """그리드 좌표에 맞는 위치에 텍스처를 그리는 헬퍼 함수입니다."""
+    r, c = pos
+    rect = pygame.Rect(
+        _offset_x + c * config.TILE_SIZE, 
+        _offset_y + r * config.TILE_SIZE, 
+        config.TILE_SIZE, 
+        config.TILE_SIZE
+    )
+    screen.blit(texture, rect)
+
+def _draw_tile_fallback(screen: pygame.Surface, pos: Tuple[int, int], color: Tuple[int, int, int]) -> None:
+    """[Fallback] 그리드 좌표에 맞는 사각형 타일 하나를 그리는 헬퍼 함수입니다."""
     r, c = pos
     rect = pygame.Rect(
         _offset_x + c * config.TILE_SIZE, 
@@ -227,7 +308,7 @@ def draw_pause_overlay(screen: pygame.Surface, resume_game_cb: Callable, open_se
 
 
 def draw_restart_prompt_overlay(screen: pygame.Surface) -> None:
-    """설정 변경 후 재시작이 필요하다는 안내 오버레이를 그립니다."""
+    """설정 변경 후 재시작이 필요하다는 안내 오버레이를 그립니다.""" 
     overlay_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
     overlay_surface.fill((0, 0, 0, 170)) # 좀 더 진한 배경
     if not _font: return
