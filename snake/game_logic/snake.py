@@ -29,6 +29,12 @@ class Snake:
         if (new_dir[0] * -1, new_dir[1] * -1) != self.direction:
             self._next_direction = new_dir
 
+    def set_direction_if_collision(self):
+        """
+        충돌 시 머리 방향을 렌더링 하기 위해 현재 방향을 업데이트 합니다.
+        """
+        self.direction = self._next_direction
+
     def get_next_head_pos(self) -> tuple:
         """
         다음 틱에서 머리가 위치할 좌표를 미리 계산하여 반환합니다.
