@@ -91,10 +91,12 @@ class GameState:
         # 2-1. 벽 충돌 검사
         if not (0 <= next_head_pos[0] < self.rows and 0 <= next_head_pos[1] < self.cols):
             self.game_over = True
+            self.snake.set_direction_if_collision()
             return
         # 2-2. 자기 몸 충돌 검사
         if self.snake.is_self_collision(next_head_pos, grow):
             self.game_over = True
+            self.snake.set_direction_if_collision()
             return
 
         # 3. [실행] 충돌이 없다면, 예측된 상태를 실제 게임 상태에 반영합니다.
