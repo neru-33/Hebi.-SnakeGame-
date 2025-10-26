@@ -11,6 +11,7 @@ from rendering import (
     draw_settings_screen,
     draw_pause_overlay,
     draw_restart_prompt_overlay,
+    draw_ready_overlay,
 )
 
 
@@ -52,8 +53,8 @@ def main():
     # nonlocal 키워드를 사용하여 함수 외부의 변수(game_mode 등)를 수정합니다.
     def start_game():
         nonlocal game_mode
-        game_mode = "gameplay"
         reset_game()
+        game_mode = "ready" # 게임 플레이 대신 준비 상태로 시작
 
     def open_settings():
         nonlocal game_mode, previous_game_mode
@@ -142,12 +143,12 @@ def main():
         elif game_mode == "settings":
             draw_settings_screen(screen, back_from_settings, events)
 
-        elif game_mode == "gameplay" or game_mode == "paused" or game_mode == "paused_restart_required":
-            # 게임 플레이/일시정지 상태일 때의 로직
+        elif game_mode == "gameplay" or game_mode == "paused" or game_mode == "paused_restart_required" or game_mode == "ready":
+            # 게임 플레이/일시정지/준비 상태일 때의 로직
             if not game_state:
                 reset_game()  # 첫 프레임일 경우 게임 초기화
 
-            # 2-1. 게임 로직 업데이트 (일시정지 상태가 아닐 때만)
+            # 2-1. 게임 로직 업데이트 (게임 플레이 상태일 때만)
             if game_mode == "gameplay":
                 # 사용자 입력 처리
                 for event in events:
@@ -167,8 +168,8 @@ def main():
                     if not game_state.is_over() and not game_state.is_win():
                         game_state.update()
                     accumulator -= tick_dt
-
-            # 2-2. 렌더링 (게임 플레이, 일시정지 모두)
+            
+            # 2-2. 렌더링 (게임 플레이, 일시정지, 준비 상태 모두)
             # 1단계: 게임 월드(뱀, 사과 등)를 별도의 game_surface에 그립니다.
             render_data = game_state.get_render_data()
             draw_frame(game_surface, render_data)
@@ -202,6 +203,14 @@ def main():
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                         reset_game()
                         game_mode = "gameplay"
+            elif game_mode == "ready":
+                draw_ready_overlay(screen)
+                # 준비 상태에서 방향키 입력 시 게임 시작
+                for event in events:
+                    if event.type == pygame.KEYDOWN and event.key in dir_map:
+                        game_state.handle_input(dir_map[event.key])
+                        game_mode = "gameplay"
+                        last_time = time.perf_counter() # 타이머 리셋
 
         # --- 3. 화면 업데이트 ---
         # 현재 프레임에 그려진 모든 것을 실제 화면에 표시합니다.

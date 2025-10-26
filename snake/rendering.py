@@ -15,6 +15,7 @@ _offset_y = 0
 # --- 이미지 텍스처 로드 ---
 _textures = {}
 
+
 def _load_textures():
     """
     게임에 사용될 이미지 텍스처들을 로드하고 크기를 조절합니다.
@@ -22,26 +23,38 @@ def _load_textures():
     global _textures
     if _textures:
         return
-    
+
     # PyInstaller로 빌드된 .exe에서 리소스 경로를 올바르게 찾기 위한 경로 설정
-    if hasattr(sys, '_MEIPASS'):
+    if hasattr(sys, "_MEIPASS"):
         # PyInstaller는 임시 폴더에 데이터를 압축 해제하고 그 경로를 _MEIPASS에 저장합니다.
-        base_path = os.path.join(sys._MEIPASS, 'res')
+        base_path = os.path.join(sys._MEIPASS, "res")
     else:
         # 일반적인 .py 실행 환경
-        base_path = os.path.join(os.path.dirname(__file__), '..', 'res')
-    
+        base_path = os.path.join(os.path.dirname(__file__), "..", "res")
+
     try:
         # 텍스처들을 딕셔너리에 로드합니다.
         _textures = {
-            'tile': pygame.image.load(os.path.join(base_path, 'tile.png')).convert(),
-            'apple': pygame.image.load(os.path.join(base_path, 'apple.png')).convert_alpha(),
-            'body': pygame.image.load(os.path.join(base_path, 'body.png')).convert_alpha(),
+            "tile": pygame.image.load(os.path.join(base_path, "tile.png")).convert(),
+            "apple": pygame.image.load(
+                os.path.join(base_path, "apple.png")
+            ).convert_alpha(),
+            "body": pygame.image.load(
+                os.path.join(base_path, "body.png")
+            ).convert_alpha(),
             # 방향 벡터: (row, col)
-            (0, 1): pygame.image.load(os.path.join(base_path, 'head_right.png')).convert_alpha(),      # 오른쪽
-            (0, -1): pygame.image.load(os.path.join(base_path, 'head_left.png')).convert_alpha(), # 왼쪽
-            (-1, 0): pygame.image.load(os.path.join(base_path, 'head_up.png')).convert_alpha(), # 위
-            (1, 0): pygame.image.load(os.path.join(base_path, 'head_down.png')).convert_alpha(),  # 아래
+            (0, 1): pygame.image.load(
+                os.path.join(base_path, "head_right.png")
+            ).convert_alpha(),  # 오른쪽
+            (0, -1): pygame.image.load(
+                os.path.join(base_path, "head_left.png")
+            ).convert_alpha(),  # 왼쪽
+            (-1, 0): pygame.image.load(
+                os.path.join(base_path, "head_up.png")
+            ).convert_alpha(),  # 위
+            (1, 0): pygame.image.load(
+                os.path.join(base_path, "head_down.png")
+            ).convert_alpha(),  # 아래
         }
 
         # 로드된 모든 이미지의 크기를 TILE_SIZE에 맞게 조절합니다.
@@ -84,7 +97,7 @@ def init_renderer(screen: pygame.Surface, grid_cols: int, grid_rows: int) -> Non
     """
     global _offset_x, _offset_y
     _initialize_fonts()
-    _load_textures() # 텍스처 로딩 함수 호출
+    _load_textures()  # 텍스처 로딩 함수 호출
 
     grid_width = grid_cols * config.TILE_SIZE
     grid_height = grid_rows * config.TILE_SIZE
@@ -93,8 +106,12 @@ def init_renderer(screen: pygame.Surface, grid_cols: int, grid_rows: int) -> Non
 
 
 def _init_ui_elements(
-    start_game_cb: Callable, open_settings_cb: Callable, exit_game_cb: Callable,
-    back_from_settings_cb: Callable, resume_game_cb: Callable, go_to_main_menu_cb: Callable,
+    start_game_cb: Callable,
+    open_settings_cb: Callable,
+    exit_game_cb: Callable,
+    back_from_settings_cb: Callable,
+    resume_game_cb: Callable,
+    go_to_main_menu_cb: Callable,
 ):
     """
     메인 메뉴, 설정, 일시정지 메뉴의 모든 UI 요소(버튼)들을 초기화합니다.
@@ -103,7 +120,7 @@ def _init_ui_elements(
     global _main_menu_buttons, _settings_elements, _pause_menu_buttons
     _initialize_fonts()
 
-    if _main_menu_buttons: # 이미 생성된 경우 콜백만 업데이트
+    if _main_menu_buttons:  # 이미 생성된 경우 콜백만 업데이트
         _main_menu_buttons[0].callback = start_game_cb
         _main_menu_buttons[1].callback = open_settings_cb
         _main_menu_buttons[2].callback = exit_game_cb
@@ -116,20 +133,40 @@ def _init_ui_elements(
     # --- UI 요소 생성 (최초 한 번만 실행) ---
     center_x = config.UI_SCREEN_WIDTH // 2
     btn_w, btn_h = 200, 50
-    
+
     # 1. 메인 메뉴 버튼
     start_y = config.UI_SCREEN_HEIGHT // 2 - 50
     _main_menu_buttons = [
-        Button(pygame.Rect(center_x - btn_w // 2, start_y, btn_w, btn_h), "게임 시작", _font, start_game_cb),
-        Button(pygame.Rect(center_x - btn_w // 2, start_y + 60, btn_w, btn_h), "설정", _font, open_settings_cb),
-        Button(pygame.Rect(center_x - btn_w // 2, start_y + 120, btn_w, btn_h), "게임 종료", _font, exit_game_cb),
+        Button(
+            pygame.Rect(center_x - btn_w // 2, start_y, btn_w, btn_h),
+            "게임 시작",
+            _font,
+            start_game_cb,
+        ),
+        Button(
+            pygame.Rect(center_x - btn_w // 2, start_y + 60, btn_w, btn_h),
+            "설정",
+            _font,
+            open_settings_cb,
+        ),
+        Button(
+            pygame.Rect(center_x - btn_w // 2, start_y + 120, btn_w, btn_h),
+            "게임 종료",
+            _font,
+            exit_game_cb,
+        ),
     ]
 
     # 2. 설정 화면 UI 요소
     _settings_elements = []
     setting_y = 150
-    setting_items = {"speed": ("속도", config.SPEED_OPTIONS), "map_size": ("맵 크기", config.MAP_SIZE_OPTIONS), "apple_count": ("사과 개수", config.APPLE_COUNT_OPTIONS)}
+    setting_items = {
+        "speed": ("속도", config.SPEED_OPTIONS),
+        "map_size": ("맵 크기", config.MAP_SIZE_OPTIONS),
+        "apple_count": ("사과 개수", config.APPLE_COUNT_OPTIONS),
+    }
     for key, (label, options) in setting_items.items():
+
         def create_callback(setting_key, option_list):
             def on_click():
                 # 현재 설정 값과 다른 값으로 변경될 때만 플래그를 설정합니다.
@@ -137,16 +174,28 @@ def _init_ui_elements(
                 current_idx = option_list.index(current_value)
                 next_idx = (current_idx + 1) % len(option_list)
                 new_value = option_list[next_idx]
-                
+
                 if current_value != new_value:
                     config.current_settings[setting_key] = new_value
                     config.settings_have_changed = True
+
             return on_click
+
         option_keys = list(options.keys())
-        btn = Button(pygame.Rect(center_x - 125, setting_y, 250, 40), f"{label}: {config.current_settings[key]}", _font, create_callback(key, option_keys))
+        btn = Button(
+            pygame.Rect(center_x - 125, setting_y, 250, 40),
+            f"{label}: {config.current_settings[key]}",
+            _font,
+            create_callback(key, option_keys),
+        )
         _settings_elements.append({"label": label, "key": key, "button": btn})
         setting_y += 60
-    back_btn = Button(pygame.Rect(center_x - 100, setting_y + 20, 200, 50), "뒤로가기", _font, back_from_settings_cb)
+    back_btn = Button(
+        pygame.Rect(center_x - 100, setting_y + 20, 200, 50),
+        "뒤로가기",
+        _font,
+        back_from_settings_cb,
+    )
     _settings_elements.append({"button": back_btn})
 
     # 3. 일시정지 메뉴 버튼
@@ -157,9 +206,22 @@ def _init_ui_elements(
     ]
 
 
-def draw_main_menu(screen: pygame.Surface, start_game_cb: Callable, open_settings_cb: Callable, exit_game_cb: Callable, events: List[pygame.event.Event]) -> None:
+def draw_main_menu(
+    screen: pygame.Surface,
+    start_game_cb: Callable,
+    open_settings_cb: Callable,
+    exit_game_cb: Callable,
+    events: List[pygame.event.Event],
+) -> None:
     """메인 메뉴 화면을 그립니다."""
-    _init_ui_elements(start_game_cb, open_settings_cb, exit_game_cb, lambda: None, lambda: None, lambda: None)
+    _init_ui_elements(
+        start_game_cb,
+        open_settings_cb,
+        exit_game_cb,
+        lambda: None,
+        lambda: None,
+        lambda: None,
+    )
     title_surf = _title_font.render("Hebi", True, config.UI_TITLE_COLOR)
     title_rect = title_surf.get_rect(center=(screen.get_width() // 2, 100))
     screen.blit(title_surf, title_rect)
@@ -169,16 +231,29 @@ def draw_main_menu(screen: pygame.Surface, start_game_cb: Callable, open_setting
         button.draw(screen)
 
 
-def draw_settings_screen(screen: pygame.Surface, back_from_settings_cb: Callable, events: List[pygame.event.Event]) -> None:
+def draw_settings_screen(
+    screen: pygame.Surface,
+    back_from_settings_cb: Callable,
+    events: List[pygame.event.Event],
+) -> None:
     """설정 화면을 그립니다."""
-    _init_ui_elements(lambda: None, lambda: None, lambda: None, back_from_settings_cb, lambda: None, lambda: None)
+    _init_ui_elements(
+        lambda: None,
+        lambda: None,
+        lambda: None,
+        back_from_settings_cb,
+        lambda: None,
+        lambda: None,
+    )
     title_surf = _title_font.render("설정", True, config.UI_TITLE_COLOR)
     title_rect = title_surf.get_rect(center=(screen.get_width() // 2, 80))
     screen.blit(title_surf, title_rect)
     for element in _settings_elements:
         button = element["button"]
-        if "key" in element: # 설정 값 변경 시 버튼 텍스트 업데이트
-            button.text = f"{element['label']}: {config.current_settings[element['key']]}"
+        if "key" in element:  # 설정 값 변경 시 버튼 텍스트 업데이트
+            button.text = (
+                f"{element['label']}: {config.current_settings[element['key']]}"
+            )
         for event in events:
             button.handle_event(event)
         button.draw(screen)
@@ -187,22 +262,23 @@ def draw_settings_screen(screen: pygame.Surface, back_from_settings_cb: Callable
 def draw_frame(screen: pygame.Surface, render_data: Dict) -> None:
     """한 프레임의 게임 화면(뱀, 사과, 점수)을 그립니다."""
     screen.fill(config.BG_COLOR)
-    if not _font: return
+    if not _font:
+        return
 
     game_config = config.get_current_config()
 
     # --- 타일 배경 그리기 ---
-    if _textures.get('tile'):
+    if _textures.get("tile"):
         for r in range(game_config["GRID_ROWS"]):
             for c in range(game_config["GRID_COLS"]):
-                _draw_tile(screen, (r, c), _textures['tile'])
+                _draw_tile(screen, (r, c), _textures["tile"])
 
     # --- 맵 경계선 그리기 ---
     border_rect = pygame.Rect(
-        _offset_x, 
-        _offset_y, 
-        game_config["GRID_COLS"] * config.TILE_SIZE, 
-        game_config["GRID_ROWS"] * config.TILE_SIZE
+        _offset_x,
+        _offset_y,
+        game_config["GRID_COLS"] * config.TILE_SIZE,
+        game_config["GRID_ROWS"] * config.TILE_SIZE,
     )
     pygame.draw.rect(screen, config.GRID_COLOR, border_rect, 1)
 
@@ -220,58 +296,70 @@ def draw_frame(screen: pygame.Surface, render_data: Dict) -> None:
     else:
         # 텍스처를 사용하여 그립니다.
         for apple_pos in render_data.get("apples", []):
-            _draw_tile(screen, apple_pos, _textures['apple'])
-        
+            _draw_tile(screen, apple_pos, _textures["apple"])
+
         snake_parts = render_data.get("snake_body", [])
         snake_direction = render_data.get("snake_direction")
 
         if snake_parts:
             # 머리 그리기: 방향에 맞는 텍스처를 선택합니다.
-            head_texture = _textures.get(snake_direction, _textures.get((0, 1))) # 방향 키가 없으면 오른쪽(기본)
+            head_texture = _textures.get(
+                snake_direction, _textures.get((0, 1))
+            )  # 방향 키가 없으면 오른쪽(기본)
             if head_texture:
                 _draw_tile(screen, snake_parts[0], head_texture)
-            
+
             # 몸통 그리기
-            if _textures.get('body'):
+            if _textures.get("body"):
                 for part in snake_parts[1:]:
-                    _draw_tile(screen, part, _textures['body'])
-    
-    score_surf = _font.render(f"점수: {render_data.get('score', 0)}", True, (50, 50, 50))
+                    _draw_tile(screen, part, _textures["body"])
+
+    score_surf = _font.render(
+        f"점수: {render_data.get('score', 0)}", True, (50, 50, 50)
+    )
     screen.blit(score_surf, (10, 10))
 
-def _draw_tile(screen: pygame.Surface, pos: Tuple[int, int], texture: pygame.Surface) -> None:
+
+def _draw_tile(
+    screen: pygame.Surface, pos: Tuple[int, int], texture: pygame.Surface
+) -> None:
     """그리드 좌표에 맞는 위치에 텍스처를 그리는 헬퍼 함수입니다."""
     r, c = pos
     rect = pygame.Rect(
-        _offset_x + c * config.TILE_SIZE, 
-        _offset_y + r * config.TILE_SIZE, 
-        config.TILE_SIZE, 
-        config.TILE_SIZE
+        _offset_x + c * config.TILE_SIZE,
+        _offset_y + r * config.TILE_SIZE,
+        config.TILE_SIZE,
+        config.TILE_SIZE,
     )
     screen.blit(texture, rect)
 
-def _draw_tile_fallback(screen: pygame.Surface, pos: Tuple[int, int], color: Tuple[int, int, int]) -> None:
+
+def _draw_tile_fallback(
+    screen: pygame.Surface, pos: Tuple[int, int], color: Tuple[int, int, int]
+) -> None:
     """[Fallback] 그리드 좌표에 맞는 사각형 타일 하나를 그리는 헬퍼 함수입니다."""
     r, c = pos
     rect = pygame.Rect(
-        _offset_x + c * config.TILE_SIZE, 
-        _offset_y + r * config.TILE_SIZE, 
-        config.TILE_SIZE, 
-        config.TILE_SIZE
+        _offset_x + c * config.TILE_SIZE,
+        _offset_y + r * config.TILE_SIZE,
+        config.TILE_SIZE,
+        config.TILE_SIZE,
     )
     pygame.draw.rect(screen, color, rect)
 
 
-
-def draw_overlay(screen: pygame.Surface, state: Literal["game_over", "game_win"], score: int) -> None:
+def draw_overlay(
+    screen: pygame.Surface, state: Literal["game_over", "game_win"], score: int
+) -> None:
     """게임 오버 또는 승리 시 나타나는 반투명 오버레이를 그립니다."""
     overlay_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
     overlay_surface.fill((0, 0, 0, 128))
-    if not _font: return
+    if not _font:
+        return
     if state == "game_over":
         title_text = "게임 오버"
         prompt_text = "재시작: Enter / 메뉴로: ESC"
-    else: # game_win
+    else:  # game_win
         title_text = "게임 승리"
         prompt_text = "메인 메뉴로 돌아가려면 Enter를 누르세요"
 
@@ -288,13 +376,27 @@ def draw_overlay(screen: pygame.Surface, state: Literal["game_over", "game_win"]
     screen.blit(overlay_surface, (0, 0))
 
 
-def draw_pause_overlay(screen: pygame.Surface, resume_game_cb: Callable, open_settings_cb: Callable, go_to_main_menu_cb: Callable, events: List[pygame.event.Event]) -> None:
+def draw_pause_overlay(
+    screen: pygame.Surface,
+    resume_game_cb: Callable,
+    open_settings_cb: Callable,
+    go_to_main_menu_cb: Callable,
+    events: List[pygame.event.Event],
+) -> None:
     """일시정지 메뉴 오버레이를 그립니다."""
     overlay_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
     overlay_surface.fill((0, 0, 0, 128))
-    if not _font: return
+    if not _font:
+        return
 
-    _init_ui_elements(lambda:None, open_settings_cb, lambda:None, lambda:None, resume_game_cb, go_to_main_menu_cb)
+    _init_ui_elements(
+        lambda: None,
+        open_settings_cb,
+        lambda: None,
+        lambda: None,
+        resume_game_cb,
+        go_to_main_menu_cb,
+    )
 
     title_surf = _title_font.render("일시정지", True, (255, 255, 255))
     center_x, center_y = screen.get_width() / 2, screen.get_height() / 2
@@ -312,18 +414,122 @@ def draw_pause_overlay(screen: pygame.Surface, resume_game_cb: Callable, open_se
 
 
 def draw_restart_prompt_overlay(screen: pygame.Surface) -> None:
-    """설정 변경 후 재시작이 필요하다는 안내 오버레이를 그립니다.""" 
+    """설정 변경 후 재시작이 필요하다는 안내 오버레이를 그립니다."""
     overlay_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
-    overlay_surface.fill((0, 0, 0, 170)) # 좀 더 진한 배경
-    if not _font: return
+    overlay_surface.fill((0, 0, 0, 170))  # 좀 더 진한 배경
+    if not _font:
+        return
 
     prompt_text = "설정이 변경되었습니다. Enter를 눌러 재시작하세요."
-    
+
     prompt_surf = _font.render(prompt_text, True, (255, 255, 255))
-    prompt_rect = prompt_surf.get_rect(center=(screen.get_width() / 2, screen.get_height() / 2))
+    prompt_rect = prompt_surf.get_rect(
+        center=(screen.get_width() / 2, screen.get_height() / 2)
+    )
     overlay_surface.blit(prompt_surf, prompt_rect)
 
     screen.blit(overlay_surface, (0, 0))
 
 
+def draw_ready_overlay(screen: pygame.Surface) -> None:
+    """게임 시작 전 조작법을 안내하는 오버레이를 그립니다."""
+    overlay_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+    overlay_surface.fill((0, 0, 0, 128))
+    if not _font:
+        return
 
+    center_x, center_y = screen.get_width() / 2, screen.get_height() / 2
+
+    # --- 요소들 정의 ---
+    prompt_text = "방향키로 시작"
+    prompt_surf = _title_font.render(prompt_text, True, (255, 255, 255))
+
+    arrow_color = (200, 200, 200)
+    key_bg_color = (80, 80, 80)
+    key_size = 40
+    key_gap = 5
+
+    # --- 레이아웃 계산 ---
+    # 1. 방향키 클러스터의 전체 너비와 높이 계산
+    arrow_cluster_width = key_size * 3 + key_gap * 2
+    arrow_cluster_height = key_size * 2 + key_gap
+
+    # 2. 텍스트와 방향키 그룹 전체의 너비 계산
+    group_gap = 40
+    total_width = prompt_surf.get_width() + group_gap + arrow_cluster_width
+
+    # 3. 그룹의 시작 x 위치 계산 (중앙 정렬)
+    start_x = center_x - total_width / 2
+
+    # 4. 텍스트 위치 설정
+    prompt_rect = prompt_surf.get_rect(centery=center_y)
+    prompt_rect.left = start_x
+
+    # 5. 방향키 클러스터의 시작 위치(좌상단) 계산
+    arrow_start_x = prompt_rect.right + group_gap
+    arrow_start_y = center_y - arrow_cluster_height / 2
+
+    # --- 그리기 ---
+    # 1. 안내 텍스트 그리기
+    overlay_surface.blit(prompt_surf, prompt_rect)
+
+    # 2. 방향키 모양 그리기 (계산된 시작 위치 기준)
+    up_rect = pygame.Rect(
+        arrow_start_x + key_size + key_gap, arrow_start_y, key_size, key_size
+    )
+    down_rect = pygame.Rect(up_rect.left, up_rect.bottom + key_gap, key_size, key_size)
+    left_rect = pygame.Rect(arrow_start_x, down_rect.top, key_size, key_size)
+    right_rect = pygame.Rect(
+        down_rect.right + key_gap, down_rect.top, key_size, key_size
+    )
+
+    # 키 배경 그리기
+    pygame.draw.rect(overlay_surface, key_bg_color, up_rect, border_radius=5)
+    pygame.draw.rect(overlay_surface, key_bg_color, down_rect, border_radius=5)
+    pygame.draw.rect(overlay_surface, key_bg_color, left_rect, border_radius=5)
+    pygame.draw.rect(overlay_surface, key_bg_color, right_rect, border_radius=5)
+
+    # 화살표(삼각형) 포인트 계산 및 그리기
+    arrow_offset = key_size // 3
+    # 위쪽 화살표
+    pygame.draw.polygon(
+        overlay_surface,
+        arrow_color,
+        [
+            (up_rect.centerx, up_rect.top + arrow_offset),
+            (up_rect.left + arrow_offset, up_rect.bottom - arrow_offset),
+            (up_rect.right - arrow_offset, up_rect.bottom - arrow_offset),
+        ],
+    )
+    # 아래쪽 화살표
+    pygame.draw.polygon(
+        overlay_surface,
+        arrow_color,
+        [
+            (down_rect.centerx, down_rect.bottom - arrow_offset),
+            (down_rect.left + arrow_offset, down_rect.top + arrow_offset),
+            (down_rect.right - arrow_offset, down_rect.top + arrow_offset),
+        ],
+    )
+    # 왼쪽 화살표
+    pygame.draw.polygon(
+        overlay_surface,
+        arrow_color,
+        [
+            (left_rect.left + arrow_offset, left_rect.centery),
+            (left_rect.right - arrow_offset, left_rect.top + arrow_offset),
+            (left_rect.right - arrow_offset, left_rect.bottom - arrow_offset),
+        ],
+    )
+    # 오른쪽 화살표
+    pygame.draw.polygon(
+        overlay_surface,
+        arrow_color,
+        [
+            (right_rect.right - arrow_offset, right_rect.centery),
+            (right_rect.left + arrow_offset, right_rect.top + arrow_offset),
+            (right_rect.left + arrow_offset, right_rect.bottom - arrow_offset),
+        ],
+    )
+
+    screen.blit(overlay_surface, (0, 0))
